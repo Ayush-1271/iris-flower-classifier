@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Iris Species Predictor</title>
+  <style>
+    body {
+      font-family: -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 40px 16px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+      padding: 32px;
+      max-width: 460px;
+      width: 100%;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 4px; }
+    p.subtitle { color: #666; margin-top: 0; margin-bottom: 24px; font-size: 0.9rem; }
+    label { display: block; font-size: 0.85rem; margin-top: 12px; margin-bottom: 4px; color: #333; }
+    input {
+      width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px;
+      font-size: 0.95rem; box-sizing: border-box;
+    }
+    button {
+      margin-top: 20px; width: 100%; padding: 10px; border: none; border-radius: 6px;
+      background: #2f6fed; color: white; font-size: 1rem; cursor: pointer;
+    }
+    button:hover { background: #2559c7; }
+    .result {
+      margin-top: 24px; padding: 16px; border-radius: 8px; background: #eefaf0;
+      border: 1px solid #b8e6c1;
+    }
+    .result h2 { margin: 0 0 8px 0; font-size: 1.1rem; color: #1c7c33; text-transform: capitalize; }
+    .error { margin-top: 20px; padding: 12px; border-radius: 8px; background: #fdeaea; color: #a12a2a; border: 1px solid #f3b7b7; }
+    .prob-bar { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 0.85rem; }
+    .prob-track { flex: 1; background: #e2e2e2; border-radius: 4px; height: 8px; overflow: hidden; }
+    .prob-fill { background: #2f6fed; height: 100%; }
+    footer { margin-top: 24px; font-size: 0.75rem; color: #999; text-align: center; }
+    code { background: #f0f0f0; padding: 2px 5px; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Iris Species Predictor</h1>
+    <p class="subtitle">Random Forest classifier trained on the classic Iris dataset. Enter flower measurements (cm) below.</p>
+
+    <form method="POST">
+      <label for="sepal_length">Sepal length (cm)</label>
+      <input type="number" step="0.1" name="sepal_length" id="sepal_length" value="{{ values.sepal_length }}" required>
+
+      <label for="sepal_width">Sepal width (cm)</label>
+      <input type="number" step="0.1" name="sepal_width" id="sepal_width" value="{{ values.sepal_width }}" required>
+
+      <label for="petal_length">Petal length (cm)</label>
+      <input type="number" step="0.1" name="petal_length" id="petal_length" value="{{ values.petal_length }}" required>
+
+      <label for="petal_width">Petal width (cm)</label>
+      <input type="number" step="0.1" name="petal_width" id="petal_width" value="{{ values.petal_width }}" required>
+
+      <button type="submit">Predict species</button>
+    </form>
+
+    {% if error %}
+      <div class="error">{{ error }}</div>
+    {% endif %}
+
+    {% if result %}
+      <div class="result">
+        <h2>{{ result.species }}</h2>
+        <div>Confidence: {{ (result.confidence * 100) | round(1) }}%</div>
+        {% for species, prob in result.probabilities.items() %}
+          <div class="prob-bar">
+            <span style="width:80px; text-transform:capitalize;">{{ species }}</span>
+            <div class="prob-track"><div class="prob-fill" style="width: {{ (prob * 100) | round(1) }}%;"></div></div>
+            <span>{{ (prob * 100) | round(1) }}%</span>
+          </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+
+    <footer>
+      Also available as a JSON API: <code>POST /api/predict</code>
+    </footer>
+  </div>
+</body>
+</html>
