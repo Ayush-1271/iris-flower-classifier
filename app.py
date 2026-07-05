@@ -24,6 +24,46 @@ MODEL = bundle["model"]
 FEATURE_NAMES = bundle["feature_names"]
 TARGET_NAMES = bundle["target_names"]
 
+# Typical real-world ranges in the classic Iris dataset, shown as input
+# guidance so a non-technical user knows what reasonable values look like.
+FEATURE_RANGES = {
+    "sepal_length": (4.3, 7.9),
+    "sepal_width": (2.0, 4.4),
+    "petal_length": (1.0, 6.9),
+    "petal_width": (0.1, 2.5),
+}
+
+# Short educational blurb + a reference photo for each species, shown
+# alongside the prediction result.
+SPECIES_INFO = {
+    "setosa": {
+        "label": "Iris setosa",
+        "description": (
+            "The smallest of the three species, with short, wide petals and "
+            "a compact flower. Native to North America, Alaska, and parts of "
+            "eastern Asia."
+        ),
+        "image": "https://upload.wikimedia.org/wikipedia/commons/5/56/Kosaciec_szczecinkowaty_Iris_setosa.jpg",
+    },
+    "versicolor": {
+        "label": "Iris versicolor (Blue Flag)",
+        "description": (
+            "A medium-sized species with intermediate petal and sepal "
+            "proportions. Common in wetlands and marshes across eastern "
+            "North America."
+        ),
+        "image": "https://upload.wikimedia.org/wikipedia/commons/4/41/Iris_versicolor_3.jpg",
+    },
+    "virginica": {
+        "label": "Iris virginica",
+        "description": (
+            "The largest of the three species, with long, narrow petals and "
+            "sepals. Found in wetlands of the southeastern United States."
+        ),
+        "image": "https://upload.wikimedia.org/wikipedia/commons/9/9f/Iris_virginica.jpg",
+    },
+}
+
 
 def build_features(sepal_length, sepal_width, petal_length, petal_width):
     """Recreate the same engineered features used during training."""
@@ -38,12 +78,14 @@ def predict_species(sepal_length, sepal_width, petal_length, petal_width):
     X = build_features(sepal_length, sepal_width, petal_length, petal_width)
     pred_idx = int(MODEL.predict(X)[0])
     proba = MODEL.predict_proba(X)[0]
+    species = TARGET_NAMES[pred_idx]
     return {
-        "species": TARGET_NAMES[pred_idx],
+        "species": species,
         "confidence": round(float(proba[pred_idx]), 4),
         "probabilities": {
             TARGET_NAMES[i]: round(float(p), 4) for i, p in enumerate(proba)
         },
+        "info": SPECIES_INFO.get(species),
     }
 
 
@@ -70,7 +112,13 @@ def index():
         except (KeyError, ValueError):
             error = "Please enter valid numeric values for all four measurements."
 
-    return render_template("index.html", result=result, error=error, values=form_values)
+    return render_template(
+        "index.html",
+        result=result,
+        error=error,
+        values=form_values,
+        ranges=FEATURE_RANGES,
+    )
 
 
 @app.route("/api/predict", methods=["POST"])
