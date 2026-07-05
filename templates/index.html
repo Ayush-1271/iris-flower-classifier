@@ -18,14 +18,18 @@
       border-radius: 12px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.08);
       padding: 32px;
-      max-width: 460px;
+      max-width: 480px;
       width: 100%;
     }
     h1 { font-size: 1.4rem; margin-bottom: 4px; }
-    p.subtitle { color: #666; margin-top: 0; margin-bottom: 24px; font-size: 0.9rem; }
-    label { display: block; font-size: 0.85rem; margin-top: 12px; margin-bottom: 4px; color: #333; }
+    p.subtitle { color: #666; margin-top: 0; margin-bottom: 20px; font-size: 0.9rem; }
+    .diagram { text-align: center; margin-bottom: 20px; }
+    .diagram-caption { font-size: 0.75rem; color: #888; margin-top: 4px; }
+    label { display: block; font-size: 0.9rem; margin-top: 14px; margin-bottom: 2px; color: #333; font-weight: 600; }
+    label .unit { font-weight: 400; color: #888; font-size: 0.8rem; }
+    .range-hint { font-size: 0.75rem; color: #999; margin-bottom: 4px; }
     input {
-      width: 100%; padding: 8px 10px; border: 1px solid #ccc; border-radius: 6px;
+      width: 100%; padding: 9px 10px; border: 1px solid #ccc; border-radius: 6px;
       font-size: 0.95rem; box-sizing: border-box;
     }
     button {
@@ -37,11 +41,15 @@
       margin-top: 24px; padding: 16px; border-radius: 8px; background: #eefaf0;
       border: 1px solid #b8e6c1;
     }
-    .result h2 { margin: 0 0 8px 0; font-size: 1.1rem; color: #1c7c33; text-transform: capitalize; }
+    .result h2 { margin: 0 0 8px 0; font-size: 1.2rem; color: #1c7c33; text-transform: capitalize; }
     .error { margin-top: 20px; padding: 12px; border-radius: 8px; background: #fdeaea; color: #a12a2a; border: 1px solid #f3b7b7; }
     .prob-bar { display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: 0.85rem; }
     .prob-track { flex: 1; background: #e2e2e2; border-radius: 4px; height: 8px; overflow: hidden; }
     .prob-fill { background: #2f6fed; height: 100%; }
+    .species-info { margin-top: 14px; padding-top: 14px; border-top: 1px solid #cfe9d6; display: flex; gap: 12px; align-items: flex-start; }
+    .species-info img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; flex-shrink: 0; background: #ddd; }
+    .species-info p { margin: 0; font-size: 0.82rem; color: #444; line-height: 1.4; }
+    .species-info h3 { margin: 0 0 4px 0; font-size: 0.95rem; color: #1c7c33; }
     footer { margin-top: 24px; font-size: 0.75rem; color: #999; text-align: center; }
     code { background: #f0f0f0; padding: 2px 5px; border-radius: 4px; }
   </style>
@@ -51,17 +59,48 @@
     <h1>Iris Species Predictor</h1>
     <p class="subtitle">Random Forest classifier trained on the classic Iris dataset. Enter flower measurements (cm) below.</p>
 
+    <div class="diagram">
+      <svg viewBox="0 0 300 190" width="100%" height="160" xmlns="http://www.w3.org/2000/svg">
+        <!-- Sepals: outer, larger, drooping -->
+        <ellipse cx="80" cy="150" rx="55" ry="20" fill="#a7d7a0" stroke="#5a9a52" stroke-width="1.5" transform="rotate(-25 80 150)"/>
+        <ellipse cx="220" cy="150" rx="55" ry="20" fill="#a7d7a0" stroke="#5a9a52" stroke-width="1.5" transform="rotate(25 220 150)"/>
+        <ellipse cx="150" cy="165" rx="55" ry="20" fill="#a7d7a0" stroke="#5a9a52" stroke-width="1.5"/>
+        <!-- Petals: inner, upright -->
+        <ellipse cx="115" cy="95" rx="24" ry="55" fill="#8e7cc3" stroke="#5b4a99" stroke-width="1.5" transform="rotate(-18 115 95)"/>
+        <ellipse cx="185" cy="95" rx="24" ry="55" fill="#8e7cc3" stroke="#5b4a99" stroke-width="1.5" transform="rotate(18 185 95)"/>
+        <ellipse cx="150" cy="85" rx="24" ry="55" fill="#a493d6" stroke="#5b4a99" stroke-width="1.5"/>
+        <!-- Length/width arrows on the front petal -->
+        <line x1="150" y1="35" x2="150" y2="135" stroke="#333" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+        <text x="156" y="85" font-size="10" fill="#333">length</text>
+        <line x1="128" y1="85" x2="172" y2="85" stroke="#333" stroke-width="1" marker-start="url(#arrow)" marker-end="url(#arrow)"/>
+        <text x="132" y="100" font-size="10" fill="#333">width</text>
+        <defs>
+          <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+            <path d="M0,0 L6,3 L0,6 Z" fill="#333"/>
+          </marker>
+        </defs>
+        <!-- Labels pointing to sepal and petal -->
+        <text x="10" y="185" font-size="12" fill="#3a6b34" font-weight="bold">Sepal (outer)</text>
+        <text x="230" y="20" font-size="12" fill="#4a3a80" font-weight="bold">Petal (inner)</text>
+      </svg>
+      <div class="diagram-caption">Sepals are the outer, leaf-like part; petals are the inner, colored part. Each is measured by length and width.</div>
+    </div>
+
     <form method="POST">
-      <label for="sepal_length">Sepal length (cm)</label>
+      <label for="sepal_length">Sepal length <span class="unit">(cm)</span></label>
+      <div class="range-hint">Typical range: {{ ranges.sepal_length[0] }} - {{ ranges.sepal_length[1] }} cm</div>
       <input type="number" step="0.1" name="sepal_length" id="sepal_length" value="{{ values.sepal_length }}" required>
 
-      <label for="sepal_width">Sepal width (cm)</label>
+      <label for="sepal_width">Sepal width <span class="unit">(cm)</span></label>
+      <div class="range-hint">Typical range: {{ ranges.sepal_width[0] }} - {{ ranges.sepal_width[1] }} cm</div>
       <input type="number" step="0.1" name="sepal_width" id="sepal_width" value="{{ values.sepal_width }}" required>
 
-      <label for="petal_length">Petal length (cm)</label>
+      <label for="petal_length">Petal length <span class="unit">(cm)</span></label>
+      <div class="range-hint">Typical range: {{ ranges.petal_length[0] }} - {{ ranges.petal_length[1] }} cm</div>
       <input type="number" step="0.1" name="petal_length" id="petal_length" value="{{ values.petal_length }}" required>
 
-      <label for="petal_width">Petal width (cm)</label>
+      <label for="petal_width">Petal width <span class="unit">(cm)</span></label>
+      <div class="range-hint">Typical range: {{ ranges.petal_width[0] }} - {{ ranges.petal_width[1] }} cm</div>
       <input type="number" step="0.1" name="petal_width" id="petal_width" value="{{ values.petal_width }}" required>
 
       <button type="submit">Predict species</button>
@@ -82,6 +121,16 @@
             <span>{{ (prob * 100) | round(1) }}%</span>
           </div>
         {% endfor %}
+
+        {% if result.info %}
+          <div class="species-info">
+            <img src="{{ result.info.image }}" alt="{{ result.info.label }}" onerror="this.style.display='none'">
+            <div>
+              <h3>{{ result.info.label }}</h3>
+              <p>{{ result.info.description }}</p>
+            </div>
+          </div>
+        {% endif %}
       </div>
     {% endif %}
 
