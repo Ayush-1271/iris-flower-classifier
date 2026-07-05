@@ -12,11 +12,19 @@ Loaded here via sklearn.datasets.load_iris (identical values, no download needed
 
 Chosen deliberately: 3 perfectly balanced classes, no missing values, and small enough that the trained model stays under 100KB while still reaching 95-100% test accuracy - a genuinely light and accurate deployable model.
 
+## Made for a general audience
+
+Beyond the raw prediction, the web form includes:
+
+- An inline diagram explaining what "sepal" and "petal" actually mean, with length/width labeled
+- Typical value ranges shown under each input field, so users know what reasonable numbers look like
+- A short description and reference photo of the predicted species after each prediction
+
 ## Project structure
 
 - train.py - EDA, feature engineering, GridSearchCV, saves iris_model.pkl
 - app.py - Flask app: web form ("/") and JSON API ("/api/predict")
-- templates/index.html - Web UI
+- templates/index.html - Web UI (diagram, range hints, species info)
 - iris_model.pkl - Trained scikit-learn pipeline (StandardScaler + RandomForest)
 - requirements.txt - Python dependencies
 - .gitignore
@@ -51,7 +59,12 @@ Example response:
       "prediction": {
         "species": "setosa",
         "confidence": 1.0,
-        "probabilities": {"setosa": 1.0, "versicolor": 0.0, "virginica": 0.0}
+        "probabilities": {"setosa": 1.0, "versicolor": 0.0, "virginica": 0.0},
+        "info": {
+          "label": "Iris setosa",
+          "description": "The smallest of the three species, with short, wide petals and a compact flower...",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/5/56/Kosaciec_szczecinkowaty_Iris_setosa.jpg"
+        }
       }
     }
 
